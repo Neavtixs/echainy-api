@@ -1,0 +1,103 @@
+# version: "3.9"
+
+services:
+
+  postgres:
+    image: postgres:16
+    # container_name: blokmarket-api
+    expose:
+      - 5432
+    environment:
+        POSTGRES_DB: ${DB_DATABASE}
+        POSTGRES_USER: ${DB_USERNAME}
+        POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - app
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
+      interval: 5s
+      retries: 5
+
+  migrate:
+    image: migrate/migrate:latest
+    # container_name: blokmarket-api
+    command: [
+      "-path=/migrations",
+      "-database=postgres://${DB_USERNAME}:${DB_PASSWORD}@postgres:${DB_PORT}/${DB_DATABASE}?sslmode=disable",
+      "up"
+    ]
+    volumes:
+      - ./db/migrations:/migrations
+    
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app
+  redis:
+    image: redis:7-alpine
+    restart: always
+    command: ["redis-server", "--requirepass", "${REDIS_PASS}"]
+    expose:
+    - 6379
+    volumes:
+    - redis_data:/data
+    networks:
+    - app
+
+  backend:
+    image: kuntyy/blokmarket-api:latest
+    # container_name: blokmarket-api
+    restart: always
+    ports:
+      - "${BE_PORT}:${BE_PORT}"
+    # expose:
+    #   - ${BE_PORT}
+    environment:
+      - BE_ENV=${BE_ENV}
+      - BE_PORT=${BE_PORT}
+      - CORS_ALLOW_ORIGIN=${CORS_ALLOW_ORIGIN}
+
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_HOST=${DB_HOST}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+
+      - DOCKER_TOKEN=${DOCKER_TOKEN}
+      - DOCKER_USERNAME=${DOCKER_USERNAME}
+
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URL=${GOOGLE_REDIRECT_URL}
+
+      - JWT_EXPIRE_MINUTES=${JWT_EXPIRE_MINUTES}
+      - JWT_SECRET=${JWT_SECRET}
+
+      - LOG_LEVEL=${LOG_LEVEL}
+
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PASS=${REDIS_PASS}
+      - REDIS_PORT=${REDIS_PORT}
+
+      - UPLOAD_DIR=${UPLOAD_DIR}
+      - UPLOAD_PUBLIC_BASE=${UPLOAD_PUBLIC_BASE}
+
+      - COOKIE_DOMAIN=${COOKIE_DOMAIN}
+    volumes:
+      - blokmarket_uploads:/app/uploads
+    networks:
+    - app
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  blokmarket_uploads:
+  redis_data:
+
+networks:
+  app:
