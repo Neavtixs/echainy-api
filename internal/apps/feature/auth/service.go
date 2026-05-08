@@ -3,21 +3,21 @@ package auth
 import (
 	"database/sql"
 
-	"github.com/Neavtixs/go-backend-template/internal/apps/domain/repository"
+	"github.com/Neavtixs/echainy-api/internal/apps/domain/repository"
 	"github.com/redis/go-redis/v9"
 )
 
 type Service struct {
-	DB       *sql.DB
-	Redis    *redis.Client
-	UserRepo *repository.UserRepo
+	DB		*sql.DB
+	Redis		*redis.Client
+	UserRepo	*repository.UserRepo
 }
 
 func NewService(db *sql.DB, userRepo *repository.UserRepo, redis *redis.Client) *Service {
 	return &Service{
-		DB:       db,
-		Redis:    redis,
-		UserRepo: userRepo,
+		DB:		db,
+		Redis:		redis,
+		UserRepo:	userRepo,
 	}
 }
 

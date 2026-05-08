@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
-	"github.com/Neavtixs/go-backend-template/configs"
-	"github.com/Neavtixs/go-backend-template/internal"
+	"github.com/Neavtixs/echainy-api/configs"
+	"github.com/Neavtixs/echainy-api/internal"
 )
 
 func main() {
@@ -16,11 +16,11 @@ func main() {
 	redis := configs.NewAccess()
 
 	internal.Apps(&internal.AppsConfig{
-		DB:       db,
-		App:      gin,
-		Validate: validate,
-		Log:      log,
-		Redis:    redis,
+		DB:		db,
+		App:		gin,
+		Validate:	validate,
+		Log:		log,
+		Redis:		redis,
 	})
 
 	port := os.Getenv("BE_PORT")

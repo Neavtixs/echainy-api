@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/Neavtixs/go-backend-template/configs"
+	"github.com/Neavtixs/echainy-api/configs"
 )
 
 func SetupTestDB(t *testing.T) *sql.DB {

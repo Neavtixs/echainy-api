@@ -3,9 +3,9 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/Neavtixs/go-backend-template/internal/dto"
-	"github.com/Neavtixs/go-backend-template/internal/errs"
-	"github.com/Neavtixs/go-backend-template/internal/helper"
+	"github.com/Neavtixs/echainy-api/internal/dto"
+	"github.com/Neavtixs/echainy-api/internal/errs"
+	"github.com/Neavtixs/echainy-api/internal/helper"
 	"github.com/gin-gonic/gin"
 )
 

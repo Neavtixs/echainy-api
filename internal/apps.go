@@ -3,7 +3,7 @@ package internal
 import (
 	"database/sql"
 
-	"github.com/Neavtixs/go-backend-template/internal/route"
+	"github.com/Neavtixs/echainy-api/internal/route"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/redis/go-redis/v9"
@@ -11,11 +11,11 @@ import (
 )
 
 type AppsConfig struct {
-	DB       *sql.DB
-	App      *gin.Engine
-	Redis    *redis.Client
-	Validate *validator.Validate
-	Log      *logrus.Logger
+	DB		*sql.DB
+	App		*gin.Engine
+	Redis		*redis.Client
+	Validate	*validator.Validate
+	Log		*logrus.Logger
 }
 
 func Apps(a *AppsConfig) {

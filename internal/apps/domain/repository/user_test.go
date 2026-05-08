@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Neavtixs/go-backend-template/internal/apps/domain/entity"
-	"github.com/Neavtixs/go-backend-template/internal/errs"
+	"github.com/Neavtixs/echainy-api/internal/apps/domain/entity"
+	"github.com/Neavtixs/echainy-api/internal/errs"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
@@ -18,9 +18,9 @@ func TestUserRepo_Create(t *testing.T) {
 	ctx := context.Background()
 
 	userData := &entity.User{
-		ID:       uuid.NewString(),
-		Email:    "duplicate@test.com",
-		Password: "hashedpassword",
+		ID:		uuid.NewString(),
+		Email:		"duplicate@test.com",
+		Password:	"hashedpassword",
 	}
 
 	tx1, _ := db.Begin()
@@ -38,15 +38,15 @@ func TestUserRepo_Create_DuplicateEmail(t *testing.T) {
 	ctx := context.Background()
 
 	user1 := &entity.User{
-		ID:       uuid.NewString(),
-		Email:    "duplicate2@test.com",
-		Password: "hashedpassword",
+		ID:		uuid.NewString(),
+		Email:		"duplicate2@test.com",
+		Password:	"hashedpassword",
 	}
 
 	user2 := &entity.User{
-		ID:       uuid.NewString(),
-		Email:    "duplicate2@test.com",
-		Password: "anotherpassword",
+		ID:		uuid.NewString(),
+		Email:		"duplicate2@test.com",
+		Password:	"anotherpassword",
 	}
 
 	tx, _ := db.Begin()

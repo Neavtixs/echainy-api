@@ -7,25 +7,25 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Neavtixs/go-backend-template/internal/apps/feature/auth"
-	"github.com/Neavtixs/go-backend-template/internal/dto"
+	"github.com/Neavtixs/echainy-api/internal/apps/feature/auth"
+	"github.com/Neavtixs/echainy-api/internal/dto"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type Route struct {
-	App         *gin.Engine
-	AuthHandler *auth.Handler
+	App		*gin.Engine
+	AuthHandler	*auth.Handler
 }
 
 func (r Route) SetupRoutes() {
 	// 🌐 Global middleware
 	r.App.Use(cors.New(cors.Config{
-		AllowOrigins:     strings.Split(os.Getenv("CORS_ALLOW_ORIGIN"), ","),
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Content-Type"},
-		AllowCredentials: true,
+		AllowOrigins:		strings.Split(os.Getenv("CORS_ALLOW_ORIGIN"), ","),
+		AllowMethods:		[]string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:		[]string{"Content-Type"},
+		AllowCredentials:	true,
 	}))
 
 	r.App.Use(func(ctx *gin.Context) {

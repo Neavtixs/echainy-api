@@ -1,4 +1,4 @@
-module github.com/Neavtixs/go-backend-template
+module github.com/Neavtixs/echainy-api
 
 go 1.25.1
 

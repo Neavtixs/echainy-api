@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/Neavtixs/go-backend-template/internal/apps/domain/entity"
-	"github.com/Neavtixs/go-backend-template/internal/errs"
+	"github.com/Neavtixs/echainy-api/internal/apps/domain/entity"
+	"github.com/Neavtixs/echainy-api/internal/errs"
 	"github.com/lib/pq"
 )
 
