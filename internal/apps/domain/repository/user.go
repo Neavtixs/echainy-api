@@ -19,11 +19,11 @@ func NewUserRepo() *UserRepo {
 // langsung validasi email yang duplikat
 func (r *UserRepo) Create(db *sql.Tx, ctx context.Context, user *entity.User) error {
 	query := `
-		INSERT INTO users(id, email, password) 
+		INSERT INTO users(id, email, oauth_provider) 
 		VALUES($1, $2, $3)
 	`
 
-	result, err := db.ExecContext(ctx, query, user.ID, user.Email, user.Password)
+	result, err := db.ExecContext(ctx, query, user.ID, user.Email, user.OauthProvider)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			if pgErr.Code == "23505" {
