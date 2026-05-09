@@ -8,6 +8,7 @@ import (
 	"github.com/Neavtixs/echainy-api/internal/errs"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUserRepo_Create(t *testing.T) {
@@ -23,10 +24,11 @@ func TestUserRepo_Create(t *testing.T) {
 		Password: "",
 	}
 
-	tx1, _ := db.Begin()
+	tx1, err := db.Begin()
+	require.NoError(t, err)
 	defer tx1.Rollback()
 
-	err := repo.Create(tx1, ctx, userData)
+	err = repo.Create(tx1, ctx, userData)
 	assert.NoError(t, err)
 }
 
@@ -49,10 +51,11 @@ func TestUserRepo_Create_DuplicateEmail(t *testing.T) {
 		Password: "",
 	}
 
-	tx, _ := db.Begin()
+	tx, err := db.Begin()
+	require.NoError(t, err)
 	defer tx.Rollback()
 
-	err := repo.Create(tx, ctx, user1)
+	err = repo.Create(tx, ctx, user1)
 	assert.NoError(t, err)
 
 	err = repo.Create(tx, ctx, user2)
