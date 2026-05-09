@@ -120,3 +120,53 @@ func (h *Handler) RegisterHandler(c *gin.Context) {
 	log.WithField("layer", "handler").Info("register response sent")
 
 }
+
+func (h *Handler) LoginHandler(c *gin.Context) {
+	log := helper.NewLog(h.Log, c)
+	log = log.WithField("handler", "login")
+	log.WithField("layer", "handler").Info("login request received")
+
+	req := dto.LoginReq{}
+	c.ShouldBindJSON(&req)
+
+	if err := h.Validate.Struct(req); err != nil {
+		log.WithError(err).WithField("layer", "handler").Warn("validation failed")
+		c.JSON(http.StatusBadRequest, dto.ResponseWeb[map[string]string]{
+			Message: "validation failed",
+			Data:    helper.ValidationMsg(err),
+		})
+		return
+	}
+
+	data, err := h.Service.Login(&dto.InputLogin{
+		Ctx:      c,
+		Email:    req.Email,
+		Password: req.Password,
+	})
+	if err != nil {
+		log.WithError(err).WithField("layer", "handler").Error("login service failed")
+
+		if errors.Is(err, errs.ErrInvalidEmailPassword) {
+			c.JSON(http.StatusUnauthorized, dto.ResponseWeb[any]{
+				Message: errs.ErrInvalidEmailPassword.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dto.ResponseWeb[any]{
+			Message: errs.ErrInternal.Error(),
+		})
+		return
+	}
+
+	h.setAuthCookies(c, data.AccessToken, data.RefreshToken)
+	log.WithField("layer", "handler").Info("auth cookies set")
+
+	c.JSON(http.StatusOK, dto.ResponseWeb[dto.LoginRes]{
+		Message: "login user success",
+		Data: dto.LoginRes{
+			Email: data.User.Email,
+		},
+	})
+	log.WithField("layer", "handler").Info("login response sent")
+}

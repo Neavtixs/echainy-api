@@ -54,8 +54,8 @@ func (r Route) SetupRoutes() {
 	{
 		// // auth public
 		public.POST("/auth/register", r.AuthHandler.RegisterHandler)
+		public.POST("/auth/login", r.AuthHandler.LoginHandler)
 	}
-	// public.POST("/auth/login", r.AuthHandler.LoginHandler)
 	// public.POST("/auth/refresh", r.AuthHandler.RefreshAccessTokenHandler)
 
 	// public.GET("/auth/google/login", r.AuthHandler.GoogleRedirectHandler)

@@ -8,6 +8,7 @@ import (
 	"github.com/Neavtixs/echainy-api/internal/apps/domain/entity"
 	"github.com/Neavtixs/echainy-api/internal/apps/domain/repository"
 	"github.com/Neavtixs/echainy-api/internal/dto"
+	"github.com/Neavtixs/echainy-api/internal/errs"
 	"github.com/Neavtixs/echainy-api/internal/helper"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
@@ -113,6 +114,44 @@ func (s *Service) Register(input *dto.InputRegister) (*dto.ResultRegister, error
 	}
 
 	return &dto.ResultRegister{
+		User:         *user,
+		AccessToken:  jwt,
+		RefreshToken: refreshToken,
+	}, nil
+}
+
+func (s *Service) Login(input *dto.InputLogin) (*dto.ResultLogin, error) {
+	user := &entity.User{}
+	err := s.UserRepo.FindByEmail(s.DB, input.Ctx, input.Email, user)
+	if err != nil {
+		if err == errs.ErrDataNotFound {
+			return nil, errs.ErrInvalidEmailPassword
+		}
+
+		return nil, fmt.Errorf("find user by email: %w", err)
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil {
+		return nil, errs.ErrInvalidEmailPassword
+	}
+
+	jwt, err := helper.GenerateJWT(user.ID)
+	if err != nil {
+		return nil, fmt.Errorf("generate access token: %w", err)
+	}
+
+	refreshToken := uuid.NewString()
+	key := "refresh_token:" + refreshToken
+	if err := s.Redis.Set(
+		input.Ctx,
+		key,
+		user.ID,
+		7*24*time.Hour,
+	).Err(); err != nil {
+		return nil, fmt.Errorf("store refresh token: %w", err)
+	}
+
+	return &dto.ResultLogin{
 		User:         *user,
 		AccessToken:  jwt,
 		RefreshToken: refreshToken,

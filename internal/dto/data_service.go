@@ -18,3 +18,15 @@ type ResultRegister struct {
 	AccessToken  string
 	RefreshToken string
 }
+
+type InputLogin struct {
+	Ctx      context.Context
+	Email    string
+	Password string
+}
+
+type ResultLogin struct {
+	User         entity.User
+	AccessToken  string
+	RefreshToken string
+}
