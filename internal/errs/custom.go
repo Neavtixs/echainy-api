@@ -4,6 +4,7 @@ import "errors"
 
 var (
 	ErrEmailUsed              = errors.New("email already used")
+	ErrSlugUsed               = errors.New("slug already used")
 	ErrUserIDUsed             = errors.New("user_id already used")
 	ErrUserIDNotFound         = errors.New("user_id is not found")
 	ErrFailedCreateData       = errors.New("failed create database")
