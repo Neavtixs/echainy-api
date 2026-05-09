@@ -1,36 +1,34 @@
 package route
 
 import (
-	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 
 	"github.com/Neavtixs/echainy-api/internal/apps/feature/auth"
 	"github.com/Neavtixs/echainy-api/internal/dto"
+	"github.com/Neavtixs/echainy-api/internal/helper"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 )
 
 type Route struct {
-	App		*gin.Engine
-	AuthHandler	*auth.Handler
+	App         *gin.Engine
+	AuthHandler *auth.Handler
+	Log         *logrus.Logger
 }
 
 func (r Route) SetupRoutes() {
-	// 🌐 Global middleware
 	r.App.Use(cors.New(cors.Config{
-		AllowOrigins:		strings.Split(os.Getenv("CORS_ALLOW_ORIGIN"), ","),
-		AllowMethods:		[]string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:		[]string{"Content-Type"},
-		AllowCredentials:	true,
+		AllowOrigins:     strings.Split(os.Getenv("CORS_ALLOW_ORIGIN"), ","),
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Content-Type"},
+		AllowCredentials: true,
 	}))
 
-	r.App.Use(func(ctx *gin.Context) {
-		ctx.Set("request_id", uuid.NewString())
-	})
+	r.App.Use(helper.RequestIDMiddleware())
+	r.App.Use(helper.RequestLogger(r.Log))
 
 	r.App.NoRoute(func(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, dto.ResponseWeb[any]{
@@ -40,14 +38,7 @@ func (r Route) SetupRoutes() {
 
 	api := r.App.Group("/api")
 
-	// ========================
-	// ROOT & STATIC
-	// ========================
 	api.GET("/", func(ctx *gin.Context) {
-		data, _ := url.Parse(ctx.GetHeader("Origin"))
-		log.Println(data.Host)
-		log.Println(ctx.Request.Host)
-
 		ctx.JSON(http.StatusOK, dto.ResponseWeb[any]{
 			Message: "this your root api",
 		})
@@ -59,12 +50,11 @@ func (r Route) SetupRoutes() {
 	// PUBLIC ROUTES
 	// ========================
 
-	// public := api.Group("")
-	// {
-	// public.GET("/storage/health", r.StorageHandler.HealthHandler)
-
-	// // auth public
-	// public.POST("/auth/register", r.AuthHandler.RegisterHandler)
+	public := api.Group("")
+	{
+		// // auth public
+		public.POST("/auth/register", r.AuthHandler.RegisterHandler)
+	}
 	// public.POST("/auth/login", r.AuthHandler.LoginHandler)
 	// public.POST("/auth/refresh", r.AuthHandler.RefreshAccessTokenHandler)
 
@@ -91,7 +81,6 @@ func (r Route) SetupRoutes() {
 	// public.GET("/leaderboard/bagibagi", r.DonationHandler.LeaderboardBagibagiHandler)
 	// public.GET("/leaderboard/sociabuzz", r.DonationHandler.LeaderboardSociabuzzHandler)
 	// public.GET("/leaderboard/map", r.DonationHandler.GetMapLeaderboardHandler)
-	// }
 
 	// ========================
 	// AUTHENTICATED USER

@@ -3,6 +3,8 @@ package internal
 import (
 	"database/sql"
 
+	"github.com/Neavtixs/echainy-api/internal/apps/domain/repository"
+	"github.com/Neavtixs/echainy-api/internal/apps/feature/auth"
 	"github.com/Neavtixs/echainy-api/internal/route"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -11,20 +13,25 @@ import (
 )
 
 type AppsConfig struct {
-	DB		*sql.DB
-	App		*gin.Engine
-	Redis		*redis.Client
-	Validate	*validator.Validate
-	Log		*logrus.Logger
+	DB       *sql.DB
+	App      *gin.Engine
+	Redis    *redis.Client
+	Validate *validator.Validate
+	Log      *logrus.Logger
 }
 
 func Apps(a *AppsConfig) {
-	// userRepo := repository.NewUserRepo()
+	userRepo := repository.NewUserRepo()
+	userProfileRepo := repository.NewUserProfileRepo()
+	authProviderRepo := repository.NewAuthProviderRepo()
+	workspaceRepo := repository.NewWorkspaceRepo()
 
-	// authService := auth.NewService(a.DB, userRepo, userProfileRepo, a.Redis)
-	// authHandler := auth.NewHandler(authService, a.Validate, a.Log)
+	authService := auth.NewService(a.DB, a.Redis, userRepo, userProfileRepo, authProviderRepo, workspaceRepo)
+	authHandler := auth.NewHandler(authService, a.Validate, a.Log)
+
 	route.Route{
-		App: a.App,
-		// AuthHandler: authHandler,
+		App:         a.App,
+		AuthHandler: authHandler,
+		Log:         a.Log,
 	}.SetupRoutes()
 }

@@ -16,11 +16,11 @@ func main() {
 	redis := configs.NewAccess()
 
 	internal.Apps(&internal.AppsConfig{
-		DB:		db,
-		App:		gin,
-		Validate:	validate,
-		Log:		log,
-		Redis:		redis,
+		DB:       db,
+		App:      gin,
+		Validate: validate,
+		Log:      log,
+		Redis:    redis,
 	})
 
 	port := os.Getenv("BE_PORT")
