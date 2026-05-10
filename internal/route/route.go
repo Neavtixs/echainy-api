@@ -57,11 +57,11 @@ func (r Route) SetupRoutes() {
 		public.POST("/auth/register", r.AuthHandler.RegisterHandler)
 		public.POST("/auth/login", r.AuthHandler.LoginHandler)
 		public.POST("/auth/refresh", r.AuthHandler.RefreshAccessTokenHandler)
+		public.POST("/auth/logout", r.AuthHandler.LogoutHandler)
 	}
 
 	// public.GET("/auth/google/login", r.AuthHandler.GoogleRedirectHandler)
 	// public.GET("/auth/google/callback", r.AuthHandler.GoogleCallbackHandler)
-	// public.POST("/auth/logout", r.AuthHandler.LogoutHandler)
 
 	// // product
 	// public.GET("/product/health", r.ProductHandler.HealthHandler)

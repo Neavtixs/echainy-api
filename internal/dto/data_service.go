@@ -52,3 +52,8 @@ type ResultRefreshAccessToken struct {
 	AccessToken  string
 	RefreshToken string
 }
+
+type InputLogout struct {
+	Ctx          context.Context
+	RefreshToken string
+}

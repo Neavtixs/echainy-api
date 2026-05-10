@@ -45,25 +45,25 @@ func (h *Handler) setAuthCookies(c *gin.Context, accessToken, refreshToken strin
 	})
 }
 
-// func (h *Handler) clearAuthCookies(c *gin.Context) {
-// 	c.SetCookieData(&http.Cookie{
-// 		Name:     "refresh_token",
-// 		Value:    "",
-// 		HttpOnly: true,
-// 		SameSite: http.SameSiteNoneMode,
-// 		Path:     "/api/auth/refresh",
-// 		MaxAge:   -1,
-// 		Secure:   true,
-// 	})
-// 	c.SetCookieData(&http.Cookie{
-// 		Name:     "access_token",
-// 		Value:    "",
-// 		HttpOnly: true,
-// 		SameSite: http.SameSiteNoneMode,
-// 		MaxAge:   -1,
-// 		Secure:   true,
-// 	})
-// }
+func (h *Handler) clearAuthCookies(c *gin.Context) {
+	c.SetCookieData(&http.Cookie{
+		Name:     "refresh_token",
+		Value:    "",
+		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+		Path:     "/api/auth/refresh",
+		MaxAge:   -1,
+		Secure:   true,
+	})
+	c.SetCookieData(&http.Cookie{
+		Name:     "access_token",
+		Value:    "",
+		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+		MaxAge:   -1,
+		Secure:   true,
+	})
+}
 
 func (h *Handler) RegisterHandler(c *gin.Context) {
 	log := helper.NewLog(h.Log, c)
@@ -256,4 +256,30 @@ func (h *Handler) RefreshAccessTokenHandler(c *gin.Context) {
 		Message: "refresh access token success",
 	})
 	log.WithField("layer", "handler").Info("refresh access token response sent")
+}
+
+func (h *Handler) LogoutHandler(c *gin.Context) {
+	log := helper.NewLog(h.Log, c)
+	log = log.WithField("handler", "logout")
+	log.WithField("layer", "handler").Info("logout request received")
+
+	refreshToken, _ := c.Cookie("refresh_token")
+	if err := h.Service.Logout(&dto.InputLogout{
+		Ctx:          c,
+		RefreshToken: refreshToken,
+	}); err != nil {
+		log.WithError(err).WithField("layer", "handler").Error("logout service failed")
+		c.JSON(http.StatusInternalServerError, dto.ResponseWeb[any]{
+			Message: errs.ErrInternal.Error(),
+		})
+		return
+	}
+
+	h.clearAuthCookies(c)
+	log.WithField("layer", "handler").Info("auth cookies cleared")
+
+	c.JSON(http.StatusOK, dto.ResponseWeb[any]{
+		Message: "logout success",
+	})
+	log.WithField("layer", "handler").Info("logout response sent")
 }

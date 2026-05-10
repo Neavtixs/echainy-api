@@ -254,3 +254,16 @@ func (s *Service) RefreshAccessToken(input *dto.InputRefreshAccessToken) (*dto.R
 		RefreshToken: refreshToken,
 	}, nil
 }
+
+func (s *Service) Logout(input *dto.InputLogout) error {
+	if input.RefreshToken == "" {
+		return nil
+	}
+
+	key := "refresh_token:" + input.RefreshToken
+	if err := s.Redis.Del(input.Ctx, key).Err(); err != nil {
+		return fmt.Errorf("delete refresh token: %w", err)
+	}
+
+	return nil
+}
