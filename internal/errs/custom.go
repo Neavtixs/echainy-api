@@ -7,6 +7,8 @@ var (
 	ErrSlugUsed               = errors.New("slug already used")
 	ErrUserIDUsed             = errors.New("user_id already used")
 	ErrUserIDNotFound         = errors.New("user_id is not found")
+	ErrWorkspaceIDUsed        = errors.New("workspace member already used")
+	ErrWorkspaceIDNotFound    = errors.New("workspace_id is not found")
 	ErrFailedCreateData       = errors.New("failed create database")
 	ErrInternal               = errors.New("internal server error")
 	ErrInvalidType            = errors.New("invalid type")

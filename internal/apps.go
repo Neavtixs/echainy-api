@@ -25,8 +25,9 @@ func Apps(a *AppsConfig) {
 	userProfileRepo := repository.NewUserProfileRepo()
 	authProviderRepo := repository.NewAuthProviderRepo()
 	workspaceRepo := repository.NewWorkspaceRepo()
+	workspaceMemberRepo := repository.NewWorkspaceMemberRepo()
 
-	authService := auth.NewService(a.DB, a.Redis, userRepo, userProfileRepo, authProviderRepo, workspaceRepo)
+	authService := auth.NewService(a.DB, a.Redis, userRepo, userProfileRepo, authProviderRepo, workspaceRepo, workspaceMemberRepo)
 	authHandler := auth.NewHandler(authService, a.Validate, a.Log)
 
 	route.Route{

@@ -16,22 +16,24 @@ import (
 )
 
 type Service struct {
-	DB               *sql.DB
-	Redis            *redis.Client
-	UserRepo         *repository.UserRepo
-	UserProfileRepo  *repository.UserProfileRepo
-	AuthProviderRepo *repository.AuthProviderRepo
-	WorkspaceRepo    *repository.WorkspaceRepo
+	DB                  *sql.DB
+	Redis               *redis.Client
+	UserRepo            *repository.UserRepo
+	UserProfileRepo     *repository.UserProfileRepo
+	AuthProviderRepo    *repository.AuthProviderRepo
+	WorkspaceRepo       *repository.WorkspaceRepo
+	WorkspaceMemberRepo *repository.WorkspaceMemberRepo
 }
 
-func NewService(db *sql.DB, redis *redis.Client, userRepo *repository.UserRepo, userProfileRepo *repository.UserProfileRepo, authProviderRepo *repository.AuthProviderRepo, workspaceRepo *repository.WorkspaceRepo) *Service {
+func NewService(db *sql.DB, redis *redis.Client, userRepo *repository.UserRepo, userProfileRepo *repository.UserProfileRepo, authProviderRepo *repository.AuthProviderRepo, workspaceRepo *repository.WorkspaceRepo, workspaceMemberRepo *repository.WorkspaceMemberRepo) *Service {
 	return &Service{
-		DB:               db,
-		Redis:            redis,
-		UserRepo:         userRepo,
-		UserProfileRepo:  userProfileRepo,
-		AuthProviderRepo: authProviderRepo,
-		WorkspaceRepo:    workspaceRepo,
+		DB:                  db,
+		Redis:               redis,
+		UserRepo:            userRepo,
+		UserProfileRepo:     userProfileRepo,
+		AuthProviderRepo:    authProviderRepo,
+		WorkspaceRepo:       workspaceRepo,
+		WorkspaceMemberRepo: workspaceMemberRepo,
 	}
 }
 
@@ -91,7 +93,16 @@ func (s *Service) Register(input *dto.InputRegister) (*dto.ResultRegister, error
 		return nil, fmt.Errorf("create workspace: %w", err)
 	}
 
-	// todo: workspace member
+	workspaceMember := &entity.WorkspaceMember{
+		ID:          uuid.NewString(),
+		WorkspaceID: workspace.ID,
+		UserID:      user.ID,
+		Role:        "OWNER",
+	}
+
+	if err := s.WorkspaceMemberRepo.Create(tx, input.Ctx, workspaceMember); err != nil {
+		return nil, fmt.Errorf("create workspace member: %w", err)
+	}
 
 	jwt, err := helper.GenerateJWT(user.ID)
 	if err != nil {
