@@ -17,6 +17,34 @@ func NewUserRepo() *UserRepo {
 	return &UserRepo{}
 }
 
+func (r *UserRepo) FindByID(db *sql.DB, ctx context.Context, id string, user *entity.User) error {
+	query := `
+		SELECT id, email, password
+		FROM users
+		WHERE id = $1
+	`
+
+	result := db.QueryRowContext(ctx, query, id)
+	if err := result.Err(); err != nil {
+		if pgErr, ok := err.(*pq.Error); ok {
+			if pgErr.Code == "22P02" {
+				return errs.ErrInvalidType
+			}
+		}
+
+		return err
+	}
+
+	if err := result.Scan(&user.ID, &user.Email, &user.Password); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return errs.ErrDataNotFound
+		}
+		return err
+	}
+
+	return nil
+}
+
 func (r *UserRepo) FindByEmail(db *sql.DB, ctx context.Context, email string, user *entity.User) error {
 	query := `
 		SELECT id, email, password

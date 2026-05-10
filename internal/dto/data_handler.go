@@ -18,3 +18,11 @@ type LoginReq struct {
 type LoginRes struct {
 	Email string `json:"email"`
 }
+
+type MeRes struct {
+	ID           string `json:"id"`
+	Email        string `json:"email"`
+	Name         string `json:"name"`
+	AvatarURL    string `json:"avatar_url"`
+	ProviderName string `json:"provider_name"`
+}

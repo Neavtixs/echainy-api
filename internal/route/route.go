@@ -8,6 +8,7 @@ import (
 	"github.com/Neavtixs/echainy-api/internal/apps/feature/auth"
 	"github.com/Neavtixs/echainy-api/internal/dto"
 	"github.com/Neavtixs/echainy-api/internal/helper"
+	"github.com/Neavtixs/echainy-api/internal/middleware"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -55,8 +56,8 @@ func (r Route) SetupRoutes() {
 		// // auth public
 		public.POST("/auth/register", r.AuthHandler.RegisterHandler)
 		public.POST("/auth/login", r.AuthHandler.LoginHandler)
+		public.POST("/auth/refresh", r.AuthHandler.RefreshAccessTokenHandler)
 	}
-	// public.POST("/auth/refresh", r.AuthHandler.RefreshAccessTokenHandler)
 
 	// public.GET("/auth/google/login", r.AuthHandler.GoogleRedirectHandler)
 	// public.GET("/auth/google/callback", r.AuthHandler.GoogleCallbackHandler)
@@ -85,9 +86,10 @@ func (r Route) SetupRoutes() {
 	// ========================
 	// AUTHENTICATED USER
 	// ========================
-	// user := api.Group("", middleware.Authorization())
-	// {
-	// 	user.GET("/auth/me", r.AuthHandler.MeHandler)
+	user := api.Group("", middleware.Authorization())
+	{
+		user.GET("/auth/me", r.AuthHandler.MeHandler)
+	}
 
 	// 	// experience
 	// 	user.POST("/experience", r.ExperienceHandler.CreateExperienceHandler)

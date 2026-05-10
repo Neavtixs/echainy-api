@@ -30,3 +30,25 @@ type ResultLogin struct {
 	AccessToken  string
 	RefreshToken string
 }
+
+type InputMe struct {
+	Ctx context.Context
+}
+
+type ResultMe struct {
+	ID           string
+	Email        string
+	Name         string
+	AvatarURL    string
+	ProviderName string
+}
+
+type InputRefreshAccessToken struct {
+	Ctx          context.Context
+	RefreshToken string
+}
+
+type ResultRefreshAccessToken struct {
+	AccessToken  string
+	RefreshToken string
+}

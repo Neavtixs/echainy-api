@@ -16,6 +16,24 @@ func NewUserProfileRepo() *UserProfileRepo {
 	return &UserProfileRepo{}
 }
 
+func (r *UserProfileRepo) FindByUserID(db *sql.DB, ctx context.Context, userID string, userProfile *entity.UserProfile) error {
+	query := `
+		SELECT id, user_id, name, avatar_url
+		FROM user_profiles
+		WHERE user_id = $1
+	`
+
+	result := db.QueryRowContext(ctx, query, userID)
+	if err := result.Scan(&userProfile.ID, &userProfile.UserID, &userProfile.Name, &userProfile.AvatarURL); err != nil {
+		if err == sql.ErrNoRows {
+			return errs.ErrDataNotFound
+		}
+		return err
+	}
+
+	return nil
+}
+
 func (r *UserProfileRepo) Create(db *sql.Tx, ctx context.Context, userProfile *entity.UserProfile) error {
 	query := `
 		INSERT INTO user_profiles(id, user_id, name, avatar_url)

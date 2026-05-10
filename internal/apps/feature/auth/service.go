@@ -168,3 +168,89 @@ func (s *Service) Login(input *dto.InputLogin) (*dto.ResultLogin, error) {
 		RefreshToken: refreshToken,
 	}, nil
 }
+
+func (s *Service) Me(input *dto.InputMe) (*dto.ResultMe, error) {
+	userID, ok := input.Ctx.Value("user_id").(string)
+	if !ok || userID == "" {
+		return nil, errs.ErrInvalidAccessToken
+	}
+
+	tx, err := s.DB.BeginTx(input.Ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	user := &entity.User{}
+	if err := s.UserRepo.FindByID(s.DB, input.Ctx, userID, user); err != nil {
+		return nil, fmt.Errorf("find user by id: %w", err)
+	}
+
+	userProfile := &entity.UserProfile{}
+	if err := s.UserProfileRepo.FindByUserID(s.DB, input.Ctx, userID, userProfile); err != nil {
+		return nil, fmt.Errorf("find user profile by user id: %w", err)
+	}
+
+	authProvider := &entity.AuthProvider{}
+	if err := s.AuthProviderRepo.FindByUserID(s.DB, input.Ctx, userID, authProvider); err != nil {
+		return nil, fmt.Errorf("find auth provider by user id: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, fmt.Errorf("commit transaction: %w", err)
+	}
+
+	return &dto.ResultMe{
+		ID:           user.ID,
+		Email:        user.Email,
+		Name:         userProfile.Name,
+		AvatarURL:    userProfile.AvatarURL,
+		ProviderName: authProvider.ProviderName,
+	}, nil
+}
+
+func (s *Service) RefreshAccessToken(input *dto.InputRefreshAccessToken) (*dto.ResultRefreshAccessToken, error) {
+	if input.RefreshToken == "" {
+		return nil, errs.ErrInvalidRefreshToken
+	}
+
+	key := "refresh_token:" + input.RefreshToken
+	userID, err := s.Redis.GetDel(input.Ctx, key).Result()
+	if err != nil {
+		if err == redis.Nil {
+			return nil, errs.ErrInvalidRefreshToken
+		}
+
+		return nil, fmt.Errorf("get refresh token: %w", err)
+	}
+
+	user := &entity.User{}
+	if err := s.UserRepo.FindByID(s.DB, input.Ctx, userID, user); err != nil {
+		if err == errs.ErrDataNotFound {
+			return nil, errs.ErrInvalidRefreshToken
+		}
+
+		return nil, fmt.Errorf("find user by id: %w", err)
+	}
+
+	accessToken, err := helper.GenerateJWT(user.ID)
+	if err != nil {
+		return nil, fmt.Errorf("generate access token: %w", err)
+	}
+
+	refreshToken := uuid.NewString()
+	newKey := "refresh_token:" + refreshToken
+	if err := s.Redis.Set(
+		input.Ctx,
+		newKey,
+		user.ID,
+		7*24*time.Hour,
+	).Err(); err != nil {
+		return nil, fmt.Errorf("store refresh token: %w", err)
+	}
+
+	return &dto.ResultRefreshAccessToken{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
+}

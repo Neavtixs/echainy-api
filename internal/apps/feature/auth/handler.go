@@ -170,3 +170,90 @@ func (h *Handler) LoginHandler(c *gin.Context) {
 	})
 	log.WithField("layer", "handler").Info("login response sent")
 }
+
+func (h *Handler) MeHandler(c *gin.Context) {
+	log := helper.NewLog(h.Log, c)
+	log = log.WithField("handler", "me")
+	log.WithField("layer", "handler").Info("me request received")
+
+	data, err := h.Service.Me(&dto.InputMe{
+		Ctx: c,
+	})
+	if err != nil {
+		log.WithError(err).WithField("layer", "handler").Error("me service failed")
+
+		if errors.Is(err, errs.ErrInvalidAccessToken) {
+			c.JSON(http.StatusUnauthorized, dto.ResponseWeb[any]{
+				Message: errs.ErrInvalidAccessToken.Error(),
+			})
+			return
+		}
+
+		if errors.Is(err, errs.ErrDataNotFound) {
+			c.JSON(http.StatusNotFound, dto.ResponseWeb[any]{
+				Message: errs.ErrDataNotFound.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dto.ResponseWeb[any]{
+			Message: errs.ErrInternal.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.ResponseWeb[dto.MeRes]{
+		Message: "get me success",
+		Data: dto.MeRes{
+			ID:           data.ID,
+			Email:        data.Email,
+			Name:         data.Name,
+			AvatarURL:    data.AvatarURL,
+			ProviderName: data.ProviderName,
+		},
+	})
+	log.WithField("layer", "handler").Info("me response sent")
+}
+
+func (h *Handler) RefreshAccessTokenHandler(c *gin.Context) {
+	log := helper.NewLog(h.Log, c)
+	log = log.WithField("handler", "refresh_access_token")
+	log.WithField("layer", "handler").Info("refresh access token request received")
+
+	refreshToken, err := c.Cookie("refresh_token")
+	if err != nil {
+		log.WithError(err).WithField("layer", "handler").Warn("refresh token cookie not found")
+		c.JSON(http.StatusUnauthorized, dto.ResponseWeb[any]{
+			Message: errs.ErrInvalidRefreshToken.Error(),
+		})
+		return
+	}
+
+	data, err := h.Service.RefreshAccessToken(&dto.InputRefreshAccessToken{
+		Ctx:          c,
+		RefreshToken: refreshToken,
+	})
+	if err != nil {
+		log.WithError(err).WithField("layer", "handler").Error("refresh access token service failed")
+
+		if errors.Is(err, errs.ErrInvalidRefreshToken) {
+			c.JSON(http.StatusUnauthorized, dto.ResponseWeb[any]{
+				Message: errs.ErrInvalidRefreshToken.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dto.ResponseWeb[any]{
+			Message: errs.ErrInternal.Error(),
+		})
+		return
+	}
+
+	h.setAuthCookies(c, data.AccessToken, data.RefreshToken)
+	log.WithField("layer", "handler").Info("auth cookies refreshed")
+
+	c.JSON(http.StatusOK, dto.ResponseWeb[any]{
+		Message: "refresh access token success",
+	})
+	log.WithField("layer", "handler").Info("refresh access token response sent")
+}

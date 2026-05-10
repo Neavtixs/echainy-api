@@ -16,6 +16,24 @@ func NewAuthProviderRepo() *AuthProviderRepo {
 	return &AuthProviderRepo{}
 }
 
+func (r *AuthProviderRepo) FindByUserID(db *sql.DB, ctx context.Context, userID string, authProvider *entity.AuthProvider) error {
+	query := `
+		SELECT id, user_id, provider_name
+		FROM auth_providers
+		WHERE user_id = $1
+	`
+
+	result := db.QueryRowContext(ctx, query, userID)
+	if err := result.Scan(&authProvider.ID, &authProvider.UserID, &authProvider.ProviderName); err != nil {
+		if err == sql.ErrNoRows {
+			return errs.ErrDataNotFound
+		}
+		return err
+	}
+
+	return nil
+}
+
 func (r *AuthProviderRepo) Create(db *sql.Tx, ctx context.Context, authProvider *entity.AuthProvider) error {
 	query := `
 		INSERT INTO auth_providers(id, user_id, provider_name)
