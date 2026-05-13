@@ -16,6 +16,51 @@ func NewWorkspaceMemberRepo() *WorkspaceMemberRepo {
 	return &WorkspaceMemberRepo{}
 }
 
+func (r *WorkspaceMemberRepo) FindWorkspacesByUserID(db *sql.DB, ctx context.Context, userID string) ([]entity.WorkspaceMemberWorkspace, error) {
+	query := `
+		SELECT
+			w.id,
+			w.owner_user_id,
+			w.name,
+			w.slug,
+			COALESCE(w.avatar_url, ''),
+			wm.role
+		FROM workspace_members wm
+		JOIN workspaces w ON w.id = wm.workspace_id
+		WHERE wm.user_id = $1
+		ORDER BY wm.created_at ASC
+	`
+
+	rows, err := db.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	workspaces := []entity.WorkspaceMemberWorkspace{}
+	for rows.Next() {
+		workspace := entity.WorkspaceMemberWorkspace{}
+		if err := rows.Scan(
+			&workspace.ID,
+			&workspace.OwnerUserID,
+			&workspace.Name,
+			&workspace.Slug,
+			&workspace.AvatarURL,
+			&workspace.Role,
+		); err != nil {
+			return nil, err
+		}
+
+		workspaces = append(workspaces, workspace)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return workspaces, nil
+}
+
 func (r *WorkspaceMemberRepo) Create(db *sql.Tx, ctx context.Context, workspaceMember *entity.WorkspaceMember) error {
 	query := `
 		INSERT INTO workspace_members(id, workspace_id, user_id, role)

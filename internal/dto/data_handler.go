@@ -20,9 +20,19 @@ type LoginRes struct {
 }
 
 type MeRes struct {
-	ID           string `json:"id"`
-	Email        string `json:"email"`
-	Name         string `json:"name"`
-	AvatarURL    string `json:"avatar_url"`
-	ProviderName string `json:"provider_name"`
+	ID           string           `json:"id"`
+	Email        string           `json:"email"`
+	Name         string           `json:"name"`
+	AvatarURL    string           `json:"avatar_url"`
+	ProviderName string           `json:"provider_name"`
+	Workspaces   []MeWorkspaceRes `json:"workspaces"`
+}
+
+type MeWorkspaceRes struct {
+	ID          string `json:"id"`
+	OwnerUserID string `json:"owner_user_id"`
+	Name        string `json:"name"`
+	Slug        string `json:"slug"`
+	AvatarURL   string `json:"avatar_url"`
+	Role        string `json:"role"`
 }

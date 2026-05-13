@@ -196,8 +196,25 @@ func (s *Service) Me(input *dto.InputMe) (*dto.ResultMe, error) {
 		return nil, fmt.Errorf("find auth provider by user id: %w", err)
 	}
 
+	workspaces, err := s.WorkspaceMemberRepo.FindWorkspacesByUserID(s.DB, input.Ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("find workspaces by user id: %w", err)
+	}
+
 	if err := tx.Commit(); err != nil {
 		return nil, fmt.Errorf("commit transaction: %w", err)
+	}
+
+	resultWorkspaces := make([]dto.ResultMeWorkspace, 0, len(workspaces))
+	for _, workspace := range workspaces {
+		resultWorkspaces = append(resultWorkspaces, dto.ResultMeWorkspace{
+			ID:          workspace.ID,
+			OwnerUserID: workspace.OwnerUserID,
+			Name:        workspace.Name,
+			Slug:        workspace.Slug,
+			AvatarURL:   workspace.AvatarURL,
+			Role:        workspace.Role,
+		})
 	}
 
 	return &dto.ResultMe{
@@ -206,6 +223,7 @@ func (s *Service) Me(input *dto.InputMe) (*dto.ResultMe, error) {
 		Name:         userProfile.Name,
 		AvatarURL:    userProfile.AvatarURL,
 		ProviderName: authProvider.ProviderName,
+		Workspaces:   resultWorkspaces,
 	}, nil
 }
 

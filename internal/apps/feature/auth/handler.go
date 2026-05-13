@@ -210,9 +210,26 @@ func (h *Handler) MeHandler(c *gin.Context) {
 			Name:         data.Name,
 			AvatarURL:    data.AvatarURL,
 			ProviderName: data.ProviderName,
+			Workspaces:   mapMeWorkspaces(data.Workspaces),
 		},
 	})
 	log.WithField("layer", "handler").Info("me response sent")
+}
+
+func mapMeWorkspaces(workspaces []dto.ResultMeWorkspace) []dto.MeWorkspaceRes {
+	result := make([]dto.MeWorkspaceRes, 0, len(workspaces))
+	for _, workspace := range workspaces {
+		result = append(result, dto.MeWorkspaceRes{
+			ID:          workspace.ID,
+			OwnerUserID: workspace.OwnerUserID,
+			Name:        workspace.Name,
+			Slug:        workspace.Slug,
+			AvatarURL:   workspace.AvatarURL,
+			Role:        workspace.Role,
+		})
+	}
+
+	return result
 }
 
 func (h *Handler) RefreshAccessTokenHandler(c *gin.Context) {

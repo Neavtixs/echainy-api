@@ -11,3 +11,12 @@ type WorkspaceMember struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
+
+type WorkspaceMemberWorkspace struct {
+	ID          string
+	OwnerUserID string
+	Name        string
+	Slug        string
+	AvatarURL   string
+	Role        string
+}

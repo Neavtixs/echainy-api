@@ -41,6 +41,16 @@ type ResultMe struct {
 	Name         string
 	AvatarURL    string
 	ProviderName string
+	Workspaces   []ResultMeWorkspace
+}
+
+type ResultMeWorkspace struct {
+	ID          string
+	OwnerUserID string
+	Name        string
+	Slug        string
+	AvatarURL   string
+	Role        string
 }
 
 type InputRefreshAccessToken struct {
