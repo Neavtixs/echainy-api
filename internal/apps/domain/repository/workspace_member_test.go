@@ -179,3 +179,56 @@ func TestWorkspaceMemberRepo_Create_UserNotFound(t *testing.T) {
 	assert.Error(t, err)
 	assert.EqualError(t, err, errs.ErrUserIDNotFound.Error())
 }
+
+func TestWorkspaceMemberRepo_FindWorkspacesByUserID(t *testing.T) {
+	db := SetupTestDB(t)
+	defer db.Close()
+
+	ctx := context.Background()
+	userID := uuid.NewString()
+	workspaceID := uuid.NewString()
+
+	_, err := db.ExecContext(ctx, `
+		INSERT INTO users(id, email, password)
+		VALUES($1, $2, $3)
+	`, userID, "workspace-member-find-workspaces@test.com", "password")
+	require.NoError(t, err)
+	defer db.ExecContext(ctx, "DELETE FROM users WHERE id = $1", userID)
+
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO workspaces(id, owner_user_id, name, slug, avatar_url)
+		VALUES($1, $2, $3, $4, $5)
+	`, workspaceID, userID, "Find Workspace Member Workspace", "find-workspace-member-workspace", "https://example.com/workspace.png")
+	require.NoError(t, err)
+
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO workspace_members(id, workspace_id, user_id, role)
+		VALUES($1, $2, $3, $4)
+	`, uuid.NewString(), workspaceID, userID, "OWNER")
+	require.NoError(t, err)
+
+	repo := NewWorkspaceMemberRepo()
+	workspaces, err := repo.FindWorkspacesByUserID(db, ctx, userID)
+	require.NoError(t, err)
+
+	require.Len(t, workspaces, 1)
+	assert.Equal(t, workspaceID, workspaces[0].ID)
+	assert.Equal(t, userID, workspaces[0].OwnerUserID)
+	assert.Equal(t, "Find Workspace Member Workspace", workspaces[0].Name)
+	assert.Equal(t, "find-workspace-member-workspace", workspaces[0].Slug)
+	assert.Equal(t, "https://example.com/workspace.png", workspaces[0].AvatarURL)
+	assert.Equal(t, "OWNER", workspaces[0].Role)
+}
+
+func TestWorkspaceMemberRepo_FindWorkspacesByUserID_Empty(t *testing.T) {
+	db := SetupTestDB(t)
+	defer db.Close()
+
+	repo := NewWorkspaceMemberRepo()
+	ctx := context.Background()
+
+	workspaces, err := repo.FindWorkspacesByUserID(db, ctx, uuid.NewString())
+
+	require.NoError(t, err)
+	assert.Empty(t, workspaces)
+}

@@ -104,3 +104,50 @@ func TestAuthProviderRepo_Create_UserIDNotFound(t *testing.T) {
 	assert.Error(t, err)
 	assert.EqualError(t, err, errs.ErrUserIDNotFound.Error())
 }
+
+func TestAuthProviderRepo_FindByUserID(t *testing.T) {
+	db := SetupTestDB(t)
+	defer db.Close()
+
+	ctx := context.Background()
+	userID := uuid.NewString()
+	authProviderID := uuid.NewString()
+
+	_, err := db.ExecContext(ctx, `
+		INSERT INTO users(id, email, password)
+		VALUES($1, $2, $3)
+	`, userID, "auth-provider-find-by-user-id@test.com", "password")
+	require.NoError(t, err)
+	defer db.ExecContext(ctx, "DELETE FROM users WHERE id = $1", userID)
+
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO auth_providers(id, user_id, provider_name)
+		VALUES($1, $2, $3)
+	`, authProviderID, userID, "local")
+	require.NoError(t, err)
+
+	repo := NewAuthProviderRepo()
+	authProvider := &entity.AuthProvider{}
+	err = repo.FindByUserID(db, ctx, userID, authProvider)
+	require.NoError(t, err)
+
+	assert.Equal(t, authProviderID, authProvider.ID)
+	assert.Equal(t, userID, authProvider.UserID)
+	assert.Equal(t, "local", authProvider.ProviderName)
+}
+
+func TestAuthProviderRepo_FindByUserID_NotFound(t *testing.T) {
+	db := SetupTestDB(t)
+	defer db.Close()
+
+	repo := NewAuthProviderRepo()
+	ctx := context.Background()
+
+	authProvider := &entity.AuthProvider{}
+	err := repo.FindByUserID(db, ctx, uuid.NewString(), authProvider)
+
+	assert.ErrorIs(t, err, errs.ErrDataNotFound)
+	assert.Empty(t, authProvider.ID)
+	assert.Empty(t, authProvider.UserID)
+	assert.Empty(t, authProvider.ProviderName)
+}

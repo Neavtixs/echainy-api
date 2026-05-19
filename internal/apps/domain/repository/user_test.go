@@ -63,6 +63,51 @@ func TestUserRepo_Create_DuplicateEmail(t *testing.T) {
 	assert.EqualError(t, err, errs.ErrEmailUsed.Error())
 }
 
+func TestUserRepo_FindByID(t *testing.T) {
+	db := SetupTestDB(t)
+	defer db.Close()
+
+	repo := NewUserRepo()
+	ctx := context.Background()
+
+	userData := &entity.User{
+		ID:       uuid.NewString(),
+		Email:    "find-by-id@test.com",
+		Password: "password",
+	}
+
+	_, err := db.ExecContext(ctx, `
+		INSERT INTO users(id, email, password)
+		VALUES($1, $2, $3)
+	`, userData.ID, userData.Email, userData.Password)
+	require.NoError(t, err)
+	defer db.ExecContext(ctx, "DELETE FROM users WHERE id = $1", userData.ID)
+
+	user := &entity.User{}
+	err = repo.FindByID(db, ctx, userData.ID, user)
+	require.NoError(t, err)
+
+	assert.Equal(t, userData.ID, user.ID)
+	assert.Equal(t, userData.Email, user.Email)
+	assert.Equal(t, userData.Password, user.Password)
+}
+
+func TestUserRepo_FindByID_NotFound(t *testing.T) {
+	db := SetupTestDB(t)
+	defer db.Close()
+
+	repo := NewUserRepo()
+	ctx := context.Background()
+
+	user := &entity.User{}
+	err := repo.FindByID(db, ctx, uuid.NewString(), user)
+
+	assert.ErrorIs(t, err, errs.ErrDataNotFound)
+	assert.Empty(t, user.ID)
+	assert.Empty(t, user.Email)
+	assert.Empty(t, user.Password)
+}
+
 func TestUserRepo_FindByEmail(t *testing.T) {
 	db := SetupTestDB(t)
 	defer db.Close()

@@ -67,3 +67,35 @@ type InputLogout struct {
 	Ctx          context.Context
 	RefreshToken string
 }
+
+type InputNewWorkspace struct {
+	Ctx       context.Context
+	Name      string
+	AvatarURL string
+}
+
+type ResultNewWorkspace struct {
+	ID          string
+	OwnerUserID string
+	Name        string
+	Slug        string
+	AvatarURL   string
+	Role        string
+}
+
+type InputListWorkspace struct {
+	Ctx context.Context
+}
+
+type ResultListWorkspace struct {
+	Workspaces []ResultListWorkspaceItem
+}
+
+type ResultListWorkspaceItem struct {
+	ID          string
+	OwnerUserID string
+	Name        string
+	Slug        string
+	AvatarURL   string
+	Role        string
+}

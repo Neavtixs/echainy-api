@@ -5,6 +5,7 @@ import (
 
 	"github.com/Neavtixs/echainy-api/internal/apps/domain/repository"
 	"github.com/Neavtixs/echainy-api/internal/apps/feature/auth"
+	"github.com/Neavtixs/echainy-api/internal/apps/feature/workspace"
 	"github.com/Neavtixs/echainy-api/internal/route"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -30,9 +31,13 @@ func Apps(a *AppsConfig) {
 	authService := auth.NewService(a.DB, a.Redis, userRepo, userProfileRepo, authProviderRepo, workspaceRepo, workspaceMemberRepo)
 	authHandler := auth.NewHandler(authService, a.Validate, a.Log)
 
+	workspaceService := workspace.NewService(a.DB, workspaceRepo, workspaceMemberRepo)
+	workspaceHandler := workspace.NewHandler(workspaceService, a.Validate, a.Log)
+
 	route.Route{
-		App:         a.App,
-		AuthHandler: authHandler,
-		Log:         a.Log,
+		App:              a.App,
+		AuthHandler:      authHandler,
+		WorkspaceHandler: workspaceHandler,
+		Log:              a.Log,
 	}.SetupRoutes()
 }

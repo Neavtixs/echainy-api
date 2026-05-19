@@ -36,3 +36,30 @@ type MeWorkspaceRes struct {
 	AvatarURL   string `json:"avatar_url"`
 	Role        string `json:"role"`
 }
+
+type NewWorkspaceReq struct {
+	Name      string `json:"name" validate:"required,max=255"`
+	AvatarURL string `json:"avatar_url" validate:"omitempty,max=255"`
+}
+
+type NewWorkspaceRes struct {
+	ID          string `json:"id"`
+	OwnerUserID string `json:"owner_user_id"`
+	Name        string `json:"name"`
+	Slug        string `json:"slug"`
+	AvatarURL   string `json:"avatar_url"`
+	Role        string `json:"role"`
+}
+
+type ListWorkspaceRes struct {
+	Workspaces []ListWorkspaceItemRes `json:"workspaces"`
+}
+
+type ListWorkspaceItemRes struct {
+	ID          string `json:"id"`
+	OwnerUserID string `json:"owner_user_id"`
+	Name        string `json:"name"`
+	Slug        string `json:"slug"`
+	AvatarURL   string `json:"avatar_url"`
+	Role        string `json:"role"`
+}

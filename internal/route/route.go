@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/Neavtixs/echainy-api/internal/apps/feature/auth"
+	"github.com/Neavtixs/echainy-api/internal/apps/feature/workspace"
 	"github.com/Neavtixs/echainy-api/internal/dto"
 	"github.com/Neavtixs/echainy-api/internal/helper"
 	"github.com/Neavtixs/echainy-api/internal/middleware"
@@ -15,9 +16,10 @@ import (
 )
 
 type Route struct {
-	App         *gin.Engine
-	AuthHandler *auth.Handler
-	Log         *logrus.Logger
+	App              *gin.Engine
+	AuthHandler      *auth.Handler
+	WorkspaceHandler *workspace.Handler
+	Log              *logrus.Logger
 }
 
 func (r Route) SetupRoutes() {
@@ -89,6 +91,8 @@ func (r Route) SetupRoutes() {
 	user := api.Group("", middleware.Authorization())
 	{
 		user.GET("/auth/me", r.AuthHandler.MeHandler)
+		user.GET("/workspace", r.WorkspaceHandler.ListHandler)
+		user.POST("/workspace", r.WorkspaceHandler.NewHandler)
 	}
 
 	// 	// experience

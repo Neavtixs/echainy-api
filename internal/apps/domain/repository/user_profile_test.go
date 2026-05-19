@@ -105,3 +105,52 @@ func TestUserProfileRepo_Create_UserIDNotFound(t *testing.T) {
 	assert.Error(t, err)
 	assert.EqualError(t, err, errs.ErrUserIDNotFound.Error())
 }
+
+func TestUserProfileRepo_FindByUserID(t *testing.T) {
+	db := SetupTestDB(t)
+	defer db.Close()
+
+	ctx := context.Background()
+	userID := uuid.NewString()
+	profileID := uuid.NewString()
+
+	_, err := db.ExecContext(ctx, `
+		INSERT INTO users(id, email, password)
+		VALUES($1, $2, $3)
+	`, userID, "profile-find-by-user-id@test.com", "password")
+	require.NoError(t, err)
+	defer db.ExecContext(ctx, "DELETE FROM users WHERE id = $1", userID)
+
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO user_profiles(id, user_id, name, avatar_url)
+		VALUES($1, $2, $3, $4)
+	`, profileID, userID, "Find Profile", "https://example.com/avatar.png")
+	require.NoError(t, err)
+
+	repo := NewUserProfileRepo()
+	userProfile := &entity.UserProfile{}
+	err = repo.FindByUserID(db, ctx, userID, userProfile)
+	require.NoError(t, err)
+
+	assert.Equal(t, profileID, userProfile.ID)
+	assert.Equal(t, userID, userProfile.UserID)
+	assert.Equal(t, "Find Profile", userProfile.Name)
+	assert.Equal(t, "https://example.com/avatar.png", userProfile.AvatarURL)
+}
+
+func TestUserProfileRepo_FindByUserID_NotFound(t *testing.T) {
+	db := SetupTestDB(t)
+	defer db.Close()
+
+	repo := NewUserProfileRepo()
+	ctx := context.Background()
+
+	userProfile := &entity.UserProfile{}
+	err := repo.FindByUserID(db, ctx, uuid.NewString(), userProfile)
+
+	assert.ErrorIs(t, err, errs.ErrDataNotFound)
+	assert.Empty(t, userProfile.ID)
+	assert.Empty(t, userProfile.UserID)
+	assert.Empty(t, userProfile.Name)
+	assert.Empty(t, userProfile.AvatarURL)
+}
